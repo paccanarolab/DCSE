@@ -15,10 +15,6 @@ The datasets used in this study are available at: [https://doi.org/10.6084/m9.fi
 
 **Please download the datasets from the above link and place them in the `data/` directory before running the code.**
 
-**Note:** From the downloaded data:
-- `training_prosp.gz` corresponds to `Prospective_warm_start`
-- `testing_prosp.gz` corresponds to `Prospective_cold_start_new_pairs`
-
 ## Installation
 
 1. Clone this repository:
