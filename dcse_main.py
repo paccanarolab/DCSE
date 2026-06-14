@@ -186,13 +186,15 @@ def create_tensor_data(df, device):
         dict: Dictionary with tensor data
     """
     return {
-        'left_drug_input': torch.tensor(df['stitch_ix1'].astype('int32').values).to(device),
-        'right_drug_input': torch.tensor(df['stitch_ix2'].astype('int32').values).to(device),
-        'se_input': torch.tensor(df['event_umls_ix'].astype('int32').values).to(device),
-        'labels': torch.tensor(df['label'].astype('int32').values).to(device)
+        # Embedding layers require integer indices of type int64.
+        'left_drug_input': torch.tensor(df['stitch_ix1'].astype('int64').values, dtype=torch.long).to(device),
+        'right_drug_input': torch.tensor(df['stitch_ix2'].astype('int64').values, dtype=torch.long).to(device),
+        'se_input': torch.tensor(df['event_umls_ix'].astype('int64').values, dtype=torch.long).to(device),
+        # Use float targets for BCELoss.
+        'labels': torch.tensor(df['label'].astype('float32').values, dtype=torch.float32).to(device),
     }
 
-def create_dataset(df, device, batch_size=512, shuffle=True):
+def create_dataset(df, device, batch_size=1024, shuffle=True):
     """
     Create PyTorch dataset and dataloader.
     
@@ -371,8 +373,18 @@ def main():
     train_set = augment_training_data(train_set)
     
     # Set up device for PyTorch
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}")
+    if torch.cuda.is_available():
+        device = torch.device("cuda:0")
+    # On macOS, PyTorch can use Apple GPUs through Metal Performance Shaders (MPS).
+    elif getattr(torch.backends, "mps", None) is not None and torch.backends.mps.is_available():
+        device = torch.device("mps")
+    else:
+        device = torch.device("cpu")
+
+    print(
+        f"Using device: {device} "
+        f"(cuda_available={torch.cuda.is_available()}, mps_available={getattr(torch.backends, 'mps', None) and torch.backends.mps.is_available()})"
+    )
     
     # Create PyTorch datasets and dataloaders
     train_dataset, train_dataloader = create_dataset(train_set, device, batch_size=512, shuffle=True)
@@ -403,7 +415,7 @@ def main():
         model=model,
         train_dataloader=train_dataloader,
         num_epochs=5,
-        learning_rate=1e-3,
+        learning_rate=1e-4,
         weight_decay=1e-6
     )
     
