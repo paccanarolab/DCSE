@@ -13,7 +13,11 @@ Side effects caused by drug combinations pose a major challenge in healthcare. K
 
 The datasets used in this study are available at: [https://doi.org/10.6084/m9.figshare.30355195](https://doi.org/10.6084/m9.figshare.30355195)
 
-**Please download the datasets from the above link and place them in the `data/` directory before running the code.**
+**Please download the datasets from the above link and place them in the `data/` directory before running the code.** Expected files:
+
+- `data/training_prosp.gz`
+- `data/prospective_warm_start.gz`
+- `data/prospective_cold_start_new_pairs_same_drugs.gz`
 
 ## Installation
 
@@ -30,13 +34,7 @@ pip install -r requirements.txt
 
 ## Usage
 
-### Basic Training and Evaluation
-
-```bash
-python dcse_main.py --training_data data/training_prosp.gz --testing_data data/testing_prosp.gz
-```
-
-### Using Default Data Paths
+By default, the script trains once on the prospective training set and then evaluates on **both** prospective test sets (warm-start and cold-start), reporting AUROC and AUPRC for each.
 
 ```bash
 python dcse_main.py
@@ -44,8 +42,20 @@ python dcse_main.py
 
 ### Command Line Arguments
 
+Use these only if your data files are in a different location:
+
 - `--training_data`: Path to training data file (default: `data/training_prosp.gz`)
-- `--testing_data`: Path to testing data file (default: `data/testing_prosp.gz`)
+- `--warm_start_testing_data`: Path to warm-start test data (default: `data/prospective_warm_start.gz`)
+- `--cold_start_testing_data`: Path to cold-start test data (default: `data/prospective_cold_start_new_pairs_same_drugs.gz`)
+
+Example with custom paths:
+
+```bash
+python dcse_main.py \
+  --training_data data/training_prosp.gz \
+  --warm_start_testing_data data/prospective_warm_start.gz \
+  --cold_start_testing_data data/prospective_cold_start_new_pairs_same_drugs.gz
+```
 
 ## Data Format
 
@@ -68,7 +78,7 @@ The model predicts the probability of a side effect occurring in a given drug co
 
 The script will output:
 - Training progress with loss, AUC, and AUPR metrics
-- Final test set evaluation with AUROC and AUPRC scores
+- Evaluation metrics (AUROC and AUPRC) for the warm-start and cold-start test sets
 
 ## Citation
 
